@@ -4,14 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="719c5bf4-9463-48b3-a5c5-ae66252f6dbd" name="更改" comment="临时版">
-      <change afterPath="$PROJECT_DIR$/ippo_agent.py" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/qmix_agent.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/battle_env.py" beforeDir="false" afterPath="$PROJECT_DIR$/battle_env.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/maddpg_agent.py" beforeDir="false" afterPath="$PROJECT_DIR$/maddpg_agent.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/train.py" beforeDir="false" afterPath="$PROJECT_DIR$/train.py" afterDir="false" />
-    </list>
+    <list default="true" id="719c5bf4-9463-48b3-a5c5-ae66252f6dbd" name="更改" comment="ippo" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -72,7 +65,7 @@
     "git-widget-placeholder": "main",
     "ignore.virus.scanning.warn.message": "true",
     "last_opened_file_path": "D:/python/learn",
-    "settings.editor.selected.configurable": "preferences.pluginManager"
+    "settings.editor.selected.configurable": "org.jetbrains.plugins.github.ui.GithubSettingsConfigurable"
   }
 }]]></component>
   <component name="RunManager" selected="Python.train (1)">
@@ -242,12 +235,21 @@
       <option name="project" value="LOCAL" />
       <updated>1741270138273</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="ippo">
+      <option name="closed" value="true" />
+      <created>1741604427633</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1741604427633</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="临时版" />
-    <option name="LAST_COMMIT_MESSAGE" value="临时版" />
+    <MESSAGE value="ippo" />
+    <option name="LAST_COMMIT_MESSAGE" value="ippo" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
