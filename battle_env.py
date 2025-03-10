@@ -439,6 +439,7 @@ class Battle_Env:
 
         for i in range(self.n_agents):
             self._total_episode_reward[i] += rewards[i]
+            rewards[i]+=win*10#胜利奖励
 
         # 保存当前状态到动画历史
         self.history.append(self._get_state())
