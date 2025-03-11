@@ -139,23 +139,27 @@ class MADDPGAgent:
         self.memory = ReplayBuffer(capacity)
         self.agents = None  # 用于共享所有智能体信息，稍后设置
 
+
     def act(self, obs, explore=True):
         """选择动作
         参数：
             obs: 当前观测
             explore: 是否进行探索（True 时使用 Gumbel-Softmax 采样）
+        返回：
+            动作索引（整数）
         """
-        obs = torch.FloatTensor(obs).unsqueeze(0).to(device)  # 转换为张量并增加批次维度
+        obs = torch.FloatTensor(obs).unsqueeze(0).to(device)  # 转换为张量并增加 batch 维度
         with torch.no_grad():  # 不计算梯度
             logits = self.actor(obs)  # 获取 Actor 输出的 logits
             if explore:
-                # 探索模式：使用 Gumbel-Softmax 采样生成 one-hot 动作
+                # 使用 Gumbel-Softmax 进行探索
                 action_probs = gumbel_softmax(logits, temperature=1.0, hard=True)
+                action = torch.argmax(action_probs, dim=-1)  # 选取最大值的索引
             else:
-                # 评估模式：直接取最大概率动作
-                action_probs = F.softmax(logits, dim=-1)
-                action_probs = torch.zeros_like(action_probs).scatter_(-1, torch.argmax(action_probs, dim=-1, keepdim=True), 1.0)
-        return action_probs.squeeze(0).cpu().numpy()  # 返回动作概率分布
+                # 评估模式：直接选择最大概率动作
+                action = torch.argmax(logits, dim=-1)  # 直接从 logits 选最大值
+
+        return action.item()  # 返回整数索引
 
     def store(self, obs, all_obs, action, all_action, reward, all_reward, next_obs, all_next_obs, done):
         """存储经验到回放缓冲区"""
