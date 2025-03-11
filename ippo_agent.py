@@ -65,7 +65,7 @@ class Critic(nn.Module):
 
 class IPPOAgent:
     def __init__(self, obs_dim, act_dim, state_dim, n_agents,
-                 lr=3e-4, gamma=0.99, clip_param=0.2, value_loss_coef=0.5,
+                 actor_lr=3e-4,critic_lr = 1e-3, gamma=0.99,lamda=0.97, clip_param=0.2, value_loss_coef=0.5,
                  entropy_coef=0.01, max_grad_norm=0.5):
         """初始化IPPO智能体
         参数：
@@ -80,8 +80,9 @@ class IPPOAgent:
             entropy_coef: 熵正则化系数（鼓励探索）
             max_grad_norm: 最大梯度范数（用于梯度裁剪，防止更新过大）
             epochs: 每条序列的训练轮数
+            lamda: GAE的λ参数
         """
-        self.lamda = 0.95  # GAE的λ参数
+        self.lamda = lamda  # GAE的λ参数
         self.obs_dim = obs_dim
         self.act_dim = act_dim
         self.state_dim = state_dim
@@ -100,8 +101,8 @@ class IPPOAgent:
         self.critic = Critic(obs_dim).to(device)  # 价值网络
 
         # 初始化优化器
-        self.actor_optimizer = optim.Adam(self.actor.parameters(), lr=lr)  # Actor的Adam优化器
-        self.critic_optimizer = optim.Adam(self.critic.parameters(), lr=lr)  # Critic的Adam优化器
+        self.actor_optimizer = optim.Adam(self.actor.parameters(), lr=actor_lr)  # Actor的Adam优化器
+        self.critic_optimizer = optim.Adam(self.critic.parameters(), lr=critic_lr)  # Critic的Adam优化器
 
         self.agents = None  # 用于存储所有智能体的引用，由训练器设置
 
@@ -116,7 +117,12 @@ class IPPOAgent:
         state = torch.tensor([obs], dtype=torch.float).to(device)
         probs = self.actor(state)
         action_dist = torch.distributions.Categorical(probs)
-        action = action_dist.sample()
+        if explore:
+            # 随机采样动作
+            action = action_dist.sample()
+        else:
+            # 选择概率最大的动作（贪婪策略）
+            action = torch.argmax(probs, dim=1)
         return action.item()
 
 

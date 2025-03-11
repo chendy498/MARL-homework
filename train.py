@@ -16,7 +16,7 @@ class RedAgentTrainer:
             n_agents: 智能体数量
             train: 是否进行训练
         """
-        self.env = Battle_Env(n_agents=n_agents)  # 初始化环境
+        self.env = Battle_Env(n_agents=n_agents,n_opponents=n_agents)  # 初始化环境
         self.n_agents = n_agents
         self.algorithm = algorithm.lower()
         self.train = train
@@ -25,6 +25,8 @@ class RedAgentTrainer:
         self.state_dim = self.obs_dim  # 简化假设：状态维度等于观测维度
         self.total_rewards = []  # 记录每个回合的总奖励
         self.all_rewards = []  # 记录每个回合的所有智能体总奖励
+        self.win = []  # 记录每个回合的胜率
+        # self.actions = [[0 for _ in range(self.act_dim)]for _ in range(n_agents)]  # 初始化动作
 
         if self.algorithm == 'maddpg':
             # 创建多个 MADDPG 智能体
@@ -49,8 +51,7 @@ class RedAgentTrainer:
         for step in range(max_steps):
             # 每个智能体选择动作
             actions = [agent.act(obs[i], explore=self.train) for i, agent in enumerate(self.agents)]
-            action_indices = [np.argmax(act) for act in actions]  # 将 one-hot 动作转换为索引
-            next_obs, rewards, done, info = self.env.step(action_indices)  # 执行动作
+            next_obs, rewards, done, info = self.env.step(actions)  # 执行动作
             # episode_transitions = [{'states': [], 'actions': [], 'next_states': [], 'rewards': [], 'dones': []} for _ in range(self.n_agents)]# 用于存储每个智能体的经验
 
             if self.train:
@@ -67,12 +68,14 @@ class RedAgentTrainer:
             # 累加奖励
             for i in range(self.n_agents):
                 total_rewards[i] += rewards[i]
+
             obs = next_obs
 
             if not self.train:
                 self.env.render(mode='animate')  # 非训练模式下渲染动画
-
+            win=False
             if done:
+                win=info['win']
                 break
 
         if self.train and self.algorithm == 'maddpg':
@@ -86,7 +89,7 @@ class RedAgentTrainer:
         if not self.train:
             self.env.show_animation()  # 显示动画
 
-        return total_rewards
+        return total_rewards,win
 
     def train_MADDPGAgent(self):
         """训练 MADDPG 智能体"""
@@ -107,17 +110,25 @@ class RedAgentTrainer:
         if not self.train:
             print("训练未启用，仅运行单回合")
             self.load_models()
-            rewards = self.run_episode()
+            rewards,win = self.run_episode()
             print(f"单回合奖励: {rewards}")
+            print(f"是否获胜: {win}")
+            self.env.show_animation()
             return
 
         for ep in range(episodes):
-            rewards = self.run_episode()
-            all_rewards = sum(rewards)
+            rewards, win = self.run_episode()
+            total_reward = sum(rewards)
             self.total_rewards.append(rewards)
-            self.all_rewards.append(all_rewards)
-            if ep % 100 == 0:
-                print(f"回合 {ep + 1}/{episodes} - 总奖励: {all_rewards}")
+            self.all_rewards.append(total_reward)
+            self.win.append(win)
+
+            if (ep + 1) % 100 == 0:
+                # 使用最近100个回合的数据
+                avg_reward = sum(self.all_rewards[-100:]) / 100
+                avg_win_rate = sum(self.win[-100:]) / 100  # 布尔值 True 被当作 1, False 当作 0
+                print(f"回合 {ep + 1}/{episodes} - 平均奖励: {avg_reward:.2f}, 平均胜率: {avg_win_rate:.2f}")
+
         self.save_models()
 
     def plot_rewards(self):
@@ -138,6 +149,24 @@ class RedAgentTrainer:
         # plt.legend()
         plt.show()
 
+    def plot_win_rate(self):
+        plt.figure(figsize=(10, 6))
+        episodes = range(1, len(self.win) + 1)
+        plt.plot(episodes, self.win, label='Win Rate', color='green', alpha=0.3)
+
+        window_size = 100
+        if len(self.win) >= window_size:
+            smoothed_win = np.convolve(self.win, np.ones(window_size) / window_size, mode='valid')
+            smoothed_episodes = episodes[window_size - 1:]
+            plt.plot(smoothed_episodes, smoothed_win, label=f'Smoothed Win Rate (window={window_size})', color='orange')
+
+        plt.xlabel('Episode')
+        plt.ylabel('Win Rate')
+        plt.title('Win Rate per Episode')
+        plt.grid(True)
+        # plt.legend()
+        plt.show()
+
     def save_models(self):
         """保存所有智能体的模型"""
         for i, agent in enumerate(self.agents):
@@ -150,6 +179,7 @@ class RedAgentTrainer:
 
 if __name__ == "__main__":
     # 示例运行：训练 5 个智能体，10 个回合
-    trainer = RedAgentTrainer(algorithm='ippo', n_agents=5, train=True)
+    trainer = RedAgentTrainer(algorithm='ippo', n_agents=2, train=True)
     trainer.train_agents(episodes=50000)
     trainer.plot_rewards()
+    trainer.plot_win_rate()
